@@ -1,0 +1,62 @@
+# Build output (regenerated with npm run build)
+dist/
+# Installed dependencies (npm ci)
+node_modules/
+# TypeScript incremental build cache
+*.tsbuildinfo
+# Local inspection tarballs (npm pack)
+opencode-*.tgz
+tpstracer-*.tgz
+
+# Test coverage (Vitest)
+coverage/
+
+# Vite and Vitest caches
+.vite/
+.vitest/
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Local environment variables (never commit secrets; keep the public template)
+.env
+.env.*
+!.env.example
+
+# Local agent instructions (root and nested; not part of the plugin)
+AGENTS.md
+
+# Local working notes and OpenSpec artifacts (root-level; kept on disk only)
+/docs/
+/openspec/
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local IDE and workspace settings
+.vscode/
+.idea/
+*.code-workspace
+*.local
+
+# OpenCode local state
+.opencode/
+
+# Local memory databases and SQLite sidecars
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Temporary directories and files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp

@@ -1,0 +1,1450 @@
+/* TPSTracer dashboard: original calm surfaces, system type, tps- prefix only. */
+
+/* Exactly one primary panel scroll owner. The host allocates the side panel
+   content a definite height; this wrapper fills that allocation, so the full
+   Detailed dashboard (including the final method section) is reachable with
+   wheel/keyboard scrolling. The inner .tps-root stays overflow-free and is
+   never a nested vertical scroll owner. Local scrollers below (selection
+   lists, history table) stay contained and separate. */
+.tps-panel-scroll {
+  box-sizing: border-box;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-x: clip;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.tps-panel-scroll > .tps-root {
+  flex: 1 0 auto;
+}
+
+.tps-panel-scroll:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+
+.tps-root {
+  --tps-bg: #f4f5f7;
+  --tps-surface: #ffffff;
+  --tps-surface-soft: #f7f7fa;
+  --tps-surface-raised: #ffffff;
+  --tps-text: #17181c;
+  --tps-muted: #6b6f76;
+  --tps-line: rgba(15, 23, 42, 0.09);
+  --tps-line-strong: rgba(15, 23, 42, 0.14);
+  --tps-accent: #2563eb;
+  --tps-accent-soft: rgba(37, 99, 235, 0.1);
+  --tps-warn: #9a6700;
+  --tps-warn-soft: rgba(154, 103, 0, 0.1);
+  --tps-danger: #c00025;
+  --tps-danger-soft: rgba(192, 0, 37, 0.08);
+  --tps-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --tps-shadow-pop: 0 12px 32px rgba(15, 23, 42, 0.16);
+  --tps-radius: 16px;
+  --tps-radius-sm: 11px;
+  --tps-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  /* Horizontal clipping belongs to the single .tps-panel-scroll owner.
+     Keeping this root overflow-free avoids a nested vertical scroll
+     container from the overflow-x/overflow-y computed-value coupling. */
+  padding: 12px;
+  background: var(--tps-bg);
+  color: var(--tps-text);
+  color-scheme: light;
+  font-family: var(--tps-font);
+  font-size: 13px;
+  line-height: 1.5;
+  position: relative;
+  container-type: inline-size;
+}
+
+.tps-root[data-tps-mode="dark"] {
+  --tps-bg: #0f1115;
+  --tps-surface: #181b21;
+  --tps-surface-soft: #21252d;
+  --tps-surface-raised: #1d2027;
+  --tps-text: #f2f4f7;
+  --tps-muted: #a0a6b1;
+  --tps-line: rgba(255, 255, 255, 0.12);
+  --tps-line-strong: rgba(255, 255, 255, 0.2);
+  --tps-accent: #7aa7ff;
+  --tps-accent-soft: rgba(122, 167, 255, 0.16);
+  --tps-warn: #e0a63c;
+  --tps-warn-soft: rgba(224, 166, 60, 0.14);
+  --tps-danger: #ff7a8a;
+  --tps-danger-soft: rgba(255, 122, 138, 0.12);
+  --tps-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --tps-shadow-pop: 0 14px 36px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+.tps-root *,
+.tps-root *::before,
+.tps-root *::after {
+  box-sizing: inherit;
+}
+
+.tps-root [hidden],
+.tps-detailed[hidden] {
+  display: none !important;
+}
+
+/* Toolbar */
+
+.tps-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  row-gap: 8px;
+  margin-bottom: 14px;
+  min-height: 32px;
+}
+
+.tps-wordmark {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.tps-spacer {
+  flex: 1 1 auto;
+}
+
+/* Segmented Simple/Detailed control. */
+
+.tps-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--tps-line);
+  border-radius: 999px;
+  background: var(--tps-surface-soft);
+  flex: 0 0 auto;
+}
+
+.tps-mode-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--tps-muted);
+  border-radius: 999px;
+  padding: 3px 9px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tps-mode-btn[aria-pressed="true"] {
+  background: var(--tps-surface);
+  color: var(--tps-text);
+  box-shadow: var(--tps-shadow);
+}
+
+.tps-mode-btn:hover {
+  color: var(--tps-text);
+}
+
+.tps-state {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tps-muted);
+  white-space: nowrap;
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--tps-surface-soft);
+  border: 1px solid var(--tps-line);
+}
+
+.tps-state[data-tone="bad"] {
+  color: var(--tps-danger);
+  background: var(--tps-danger-soft);
+  border-color: var(--tps-danger);
+}
+
+.tps-state[data-tone="warn"] {
+  color: var(--tps-warn);
+  background: var(--tps-warn-soft);
+  border-color: var(--tps-warn);
+}
+
+.tps-refresh {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 12px;
+  border: 1px solid var(--tps-line);
+  background: var(--tps-surface);
+  color: var(--tps-text);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  cursor: pointer;
+  flex: 0 0 auto;
+  box-shadow: var(--tps-shadow);
+}
+
+.tps-refresh:hover {
+  background: var(--tps-surface-soft);
+  border-color: var(--tps-line-strong);
+}
+
+.tps-refresh-icon {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Discrete refresh slot: always reserved so background updates never shift
+   toolbar geometry. Hidden (not removed) when idle; no live announcements. */
+.tps-sync {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden;
+}
+
+.tps-sync[data-active="true"] {
+  visibility: visible;
+}
+
+.tps-sync-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--tps-line);
+  border-top-color: var(--tps-accent);
+  animation: tps-spin 0.9s linear infinite;
+}
+
+@keyframes tps-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Stable partial disclosure: the 18px slot is always reserved (inert
+   placeholder when nothing is partial), so the notice never shifts toolbar
+   geometry. Detail opens as an absolute overlay inside the root and never
+   pushes the metrics below. */
+.tps-flag-ph {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+}
+
+.tps-flag {
+  position: relative;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+}
+
+.tps-flag-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--tps-warn);
+  background: var(--tps-warn-soft);
+  color: var(--tps-warn);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  list-style: none;
+}
+
+.tps-flag-btn::-webkit-details-marker {
+  display: none;
+}
+
+.tps-flag-btn::marker {
+  content: "";
+}
+
+.tps-flag-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  width: max-content;
+  max-width: 240px;
+  max-width: min(240px, calc(100cqi - 24px));
+  z-index: 40;
+  background: var(--tps-surface);
+  border: 1px solid var(--tps-warn);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 0;
+  box-shadow: var(--tps-shadow-pop);
+  font-size: 12px;
+  color: var(--tps-text);
+}
+
+.tps-flag-pop p {
+  margin: 0 0 6px;
+}
+
+.tps-flag-pop p:last-child {
+  margin-bottom: 0;
+}
+
+/* Selection popovers: bounded, themed, inside the panel. */
+
+.tps-menu {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.tps-menu-trigger {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 4px 10px;
+  border: 1px solid var(--tps-line);
+  border-radius: 999px;
+  background: var(--tps-surface);
+  color: var(--tps-text);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  cursor: pointer;
+  box-shadow: var(--tps-shadow);
+}
+
+.tps-menu-trigger:hover {
+  background: var(--tps-surface-soft);
+  border-color: var(--tps-line-strong);
+}
+
+.tps-menu-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tps-menu-chevron {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--tps-muted);
+  line-height: 1;
+}
+
+.tps-menu-chevron svg {
+  display: block;
+  width: 10px;
+  height: 6px;
+  flex: 0 0 auto;
+}
+
+.tps-menu-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-start: 0;
+  z-index: 50;
+  width: max-content;
+  min-width: 100%;
+  max-width: min(320px, calc(100cqi - 24px));
+  padding: 4px;
+  border: 1px solid var(--tps-line);
+  border-radius: 14px;
+  background: var(--tps-surface);
+  box-shadow: var(--tps-shadow-pop);
+}
+
+.tps-menu-pop[data-align="end"] {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+
+.tps-menu-list {
+  max-height: 240px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 0;
+  border-radius: 10px;
+}
+
+.tps-menu-list:focus-visible {
+  outline: 2px solid var(--tps-accent);
+  outline-offset: 2px;
+}
+
+.tps-menu-option {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 9px;
+  border-radius: 9px;
+  cursor: pointer;
+  color: var(--tps-text);
+  font-size: 12.5px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.tps-menu-option[data-active="true"] {
+  background: var(--tps-accent-soft);
+}
+
+.tps-menu-option[aria-selected="true"] {
+  color: var(--tps-accent);
+  font-weight: 650;
+}
+
+.tps-menu-option[data-disabled="true"] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.tps-menu-option-label {
+  min-width: 0;
+}
+
+.tps-menu-option-detail {
+  color: var(--tps-muted);
+  font-size: 10.5px;
+  font-weight: 400;
+}
+
+.tps-menu-empty {
+  margin: 0;
+  padding: 8px 9px;
+  color: var(--tps-muted);
+  font-size: 12px;
+}
+
+/* Hero pair */
+
+.tps-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tps-card {
+  background: var(--tps-surface);
+  border: 1px solid var(--tps-line);
+  border-radius: var(--tps-radius);
+  padding: 15px 15px 13px;
+  min-width: 0;
+}
+
+.tps-card-main {
+  box-shadow: var(--tps-shadow);
+}
+
+.tps-card h3 {
+  margin: 0 0 7px;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--tps-muted);
+}
+
+.tps-value {
+  margin: 0;
+  font-size: clamp(25px, 7vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+  overflow-wrap: break-word;
+}
+
+/* One atomic LTR fragment for the numeric value and its unit. Keeping both
+   inside the same isolate prevents RTL parents from reversing their order. */
+.tps-rate {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.tps-unit {
+  display: inline-block;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--tps-muted);
+  margin-inline-start: 5px;
+  white-space: nowrap;
+}
+
+.tps-scope {
+  margin: 7px 0 0;
+  font-size: 11px;
+  color: var(--tps-muted);
+  overflow-wrap: anywhere;
+}
+
+.tps-simple {
+  margin-bottom: 10px;
+}
+
+.tps-simple-note {
+  margin: 5px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--tps-muted);
+  overflow-wrap: anywhere;
+}
+
+.tps-simple-explain {
+  margin: 9px 0 0;
+  padding: 0 2px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--tps-muted);
+}
+
+/* Reserved live activity/TTFT row: always mounted inside the dashboard so
+   activity, estimate and TTFT swaps never insert or remove an in-flow block.
+   Final hero cards remain final-only. */
+.tps-live {
+  background: var(--tps-surface);
+  border: 1px solid var(--tps-line);
+  border-radius: var(--tps-radius);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  min-width: 0;
+  min-height: 96px;
+  box-shadow: var(--tps-shadow);
+}
+
+.tps-live-scope {
+  margin: 0 0 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--tps-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tps-live-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.tps-live-cell {
+  min-width: 0;
+}
+
+.tps-live-cell dt {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--tps-muted);
+  margin-bottom: 2px;
+}
+
+.tps-live-cell dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tps-live-detail {
+  margin: 3px 0 0;
+  min-height: 16px;
+  font-size: 10.5px;
+  color: var(--tps-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tps-live-estimate[data-live="true"] {
+  color: var(--tps-accent);
+}
+
+.tps-live-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+  margin-top: 9px;
+  min-width: 0;
+}
+
+.tps-live-controls .tps-hint {
+  margin: 0;
+  min-width: 0;
+  flex: 1 1 180px;
+}
+
+/* Labelled semantic switch (native checkbox exposed as role="switch"). */
+
+.tps-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--tps-text);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  flex: 0 0 auto;
+}
+
+.tps-switch-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tps-switch-track {
+  position: relative;
+  width: 32px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--tps-line-strong);
+  flex: 0 0 auto;
+  transition: background 0.15s ease;
+}
+
+.tps-switch-thumb {
+  position: absolute;
+  top: 2px;
+  inset-inline-start: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+
+.tps-switch-input:checked + .tps-switch-track {
+  background: var(--tps-accent);
+}
+
+.tps-switch-input:checked + .tps-switch-track .tps-switch-thumb {
+  transform: translateX(14px);
+}
+
+/* Mirror the physical travel of the switch inside the RTL plugin boundary.
+   The track itself is centered in the flow by the logical inset above. */
+.tps-root[dir="rtl"] .tps-switch-input:checked + .tps-switch-track .tps-switch-thumb {
+  transform: translateX(-14px);
+}
+
+.tps-switch-input:focus-visible + .tps-switch-track {
+  outline: 2px solid var(--tps-accent);
+  outline-offset: 2px;
+}
+
+/* Secondary stats */
+
+.tps-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.tps-stat {
+  background: var(--tps-surface);
+  border: 1px solid var(--tps-line);
+  border-radius: var(--tps-radius-sm);
+  padding: 9px 11px;
+  min-width: 0;
+}
+
+.tps-stat dt {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--tps-muted);
+  margin-bottom: 2px;
+}
+
+.tps-stat dd {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: break-word;
+}
+
+/* Sections */
+
+.tps-section {
+  background: var(--tps-surface);
+  border: 1px solid var(--tps-line);
+  border-radius: var(--tps-radius);
+  padding: 14px 15px;
+  margin-bottom: 12px;
+  min-width: 0;
+  box-shadow: var(--tps-shadow);
+}
+
+.tps-section h3 {
+  margin: 0 0 9px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
+
+.tps-hint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--tps-muted);
+}
+
+.tps-trend-panel {
+  min-width: 0;
+}
+
+.tps-trend-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--tps-text);
+}
+
+.tps-trend-desc {
+  margin: 3px 0 9px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--tps-muted);
+  overflow-wrap: anywhere;
+}
+
+.tps-trend-empty {
+  margin: 0;
+  font-size: 12px;
+  color: var(--tps-muted);
+}
+
+/* Grid places the numeric y labels outside the stretched SVG. The SVG itself
+   uses preserveAspectRatio="none" and non-scaling strokes, so it spans the
+   full plot width without letterboxing or distorted text. */
+.tps-chart {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 8px;
+  min-width: 0;
+  /* Chart coordinates, y labels and chronological order stay LTR even when
+     the surrounding dashboard is Arabic. Captions remain translated. */
+  direction: ltr;
+}
+
+.tps-chart-unit {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: end;
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--tps-muted);
+  white-space: nowrap;
+}
+
+.tps-chart-y {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 10.5px;
+  line-height: 1;
+  color: var(--tps-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tps-chart-plot {
+  grid-column: 2;
+  grid-row: 2;
+  position: relative;
+  min-width: 0;
+  height: 128px;
+  height: clamp(104px, 32cqi, 160px);
+}
+
+.tps-trend {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: var(--tps-accent);
+}
+
+.tps-trend-grid line {
+  stroke: var(--tps-line);
+  stroke-width: 1;
+}
+
+.tps-chart-dots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tps-chart-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--tps-accent);
+  box-shadow: 0 0 0 2px var(--tps-surface);
+}
+
+.tps-chart-x {
+  grid-column: 2;
+  grid-row: 3;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 10px;
+  line-height: 1.3;
+  color: var(--tps-muted);
+}
+
+.tps-chart-x span:nth-child(2) {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.tps-chart-x span:first-child,
+.tps-chart-x span:last-child {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.tps-chart-legend {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--tps-muted);
+}
+
+.tps-chart-swatch {
+  width: 16px;
+  height: 0;
+  border-top: 2px solid var(--tps-accent);
+  border-radius: 2px;
+  flex: 0 0 auto;
+}
+
+.tps-trend-note {
+  grid-column: 1 / -1;
+  grid-row: 5;
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--tps-muted);
+}
+
+/* Scope selection row */
+
+.tps-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  min-width: 0;
+}
+
+.tps-field > label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tps-muted);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.tps-field .tps-menu {
+  flex: 1 1 auto;
+}
+
+.tps-field .tps-menu-trigger {
+  width: 100%;
+  justify-content: space-between;
+}
+
+/* Agent filter chips */
+
+.tps-scopes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.tps-scope-btn {
+  appearance: none;
+  border: 1px solid var(--tps-line);
+  background: var(--tps-surface-soft);
+  color: var(--tps-text);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 550;
+  max-width: 100%;
+  cursor: pointer;
+}
+
+.tps-scope-btn:hover {
+  border-color: var(--tps-line-strong);
+}
+
+.tps-scope-btn[aria-pressed="true"] {
+  background: var(--tps-accent-soft);
+  border-color: var(--tps-accent);
+  color: var(--tps-text);
+  font-weight: 650;
+}
+
+/* Subagent cards */
+
+.tps-agents {
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.tps-agent {
+  background: var(--tps-surface);
+  border: 1px solid var(--tps-line);
+  border-radius: var(--tps-radius-sm);
+  padding: 4px 12px;
+  min-width: 0;
+}
+
+.tps-agent details {
+  margin: 0;
+}
+
+.tps-agent-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  padding: 7px 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.tps-agent-head::-webkit-details-marker {
+  display: none;
+}
+
+.tps-agent-head::before {
+  content: "›";
+  color: var(--tps-muted);
+  font-size: 14px;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+
+.tps-agent details[open] > .tps-agent-head::before {
+  transform: rotate(90deg);
+}
+
+/* Mirror the disclosure chevron inside the RTL plugin boundary. */
+.tps-root[dir="rtl"] .tps-agent-head::before {
+  content: "‹";
+}
+
+.tps-root[dir="rtl"] .tps-agent details[open] > .tps-agent-head::before {
+  transform: rotate(-90deg);
+}
+
+.tps-agent-name {
+  font-weight: 700;
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tps-agent-depth {
+  font-size: 10.5px;
+  color: var(--tps-muted);
+  white-space: nowrap;
+}
+
+.tps-agent-state {
+  font-size: 11px;
+  color: var(--tps-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tps-agent-body {
+  padding: 2px 0 10px;
+  min-width: 0;
+}
+
+.tps-agent-meta {
+  margin: 4px 0;
+  font-size: 12px;
+  color: var(--tps-muted);
+  overflow-wrap: anywhere;
+}
+
+.tps-agent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tps-agent-actions .tps-more {
+  margin-top: 0;
+}
+
+.tps-agents-box > summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+  margin-bottom: 9px;
+}
+
+.tps-agent-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tps-agent-empty {
+  font-size: 12px;
+  color: var(--tps-muted);
+}
+
+.tps-model-prov {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--tps-muted);
+}
+
+/* Reserved model status line: always mounted with fixed single-line
+   geometry so partial/loading/coverage swaps never shift layout. */
+.tps-models-note {
+  margin: 6px 0 9px;
+  min-height: 18px;
+  font-size: 10.5px;
+  color: var(--tps-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* History */
+
+.tps-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
+  max-height: 420px;
+  border-radius: 10px;
+}
+
+.tps-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tps-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--tps-surface);
+}
+
+.tps-table th {
+  text-align: start;
+  font-weight: 600;
+  color: var(--tps-muted);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding-block: 7px;
+  padding-inline: 0 8px;
+  border-bottom: 1px solid var(--tps-line);
+  white-space: nowrap;
+}
+
+.tps-table th:not(:first-child),
+.tps-table td:not(:first-child) {
+  text-align: end;
+}
+
+.tps-table td {
+  padding-block: 7px;
+  padding-inline: 0 8px;
+  border-bottom: 1px solid var(--tps-line);
+  vertical-align: baseline;
+}
+
+.tps-table tbody tr:hover {
+  background: var(--tps-surface-soft);
+}
+
+.tps-table tr:last-child td {
+  border-bottom: none;
+}
+
+.tps-model {
+  display: inline-block;
+  max-width: 22ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.tps-more {
+  appearance: none;
+  margin-top: 8px;
+  border: 1px solid var(--tps-line);
+  background: var(--tps-surface-soft);
+  color: var(--tps-text);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 550;
+  cursor: pointer;
+}
+
+.tps-more:hover {
+  border-color: var(--tps-line-strong);
+}
+
+/* Status / alerts */
+
+.tps-status {
+  background: var(--tps-surface);
+  border: 1px solid var(--tps-line);
+  border-radius: var(--tps-radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.tps-status p {
+  margin: 0 0 8px;
+}
+
+.tps-status p:last-child {
+  margin-bottom: 0;
+}
+
+.tps-alert {
+  border-color: var(--tps-warn);
+}
+
+.tps-error {
+  border-color: var(--tps-danger);
+  background: var(--tps-danger-soft);
+}
+
+.tps-about {
+  background: var(--tps-surface-soft);
+  border: 1px solid var(--tps-line);
+  border-radius: var(--tps-radius-sm);
+  padding: 9px 12px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--tps-muted);
+}
+
+.tps-about summary {
+  cursor: pointer;
+  font-weight: 650;
+  color: var(--tps-text);
+}
+
+.tps-about p {
+  margin: 8px 0 4px;
+  line-height: 1.5;
+}
+
+/* Header indicator (session.header slot): button-like hover affordance.
+   Lives outside .tps-root, so it carries its own isolated class (never a
+   global button selector). panel.css is registered document-wide through
+   the official Style registry at plugin setup (see gui.tsx), therefore
+   these rules are already active in the header even when the panel was
+   never opened. Geometry (display/padding/border/white-space) is identical
+   in every state; hover and focus change only background color and outline,
+   so there is no layout shift. The neutral translucent gray reads on light
+   and dark host themes without host tokens; focus outline reuses the panel
+   accent hues per color scheme. Native title tooltip is preserved. */
+.tps-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tps-header-badge:hover {
+  background: rgba(127, 127, 127, 0.18);
+  border-color: transparent;
+}
+
+.tps-header-badge:focus-visible {
+  outline: 2px solid #0a66ff;
+  outline-offset: 2px;
+}
+
+/* Followed-delegate identity: compact truncated label with the full
+   agent/task provenance in the button title/aria. Bounded width keeps the
+   header compact; ellipsis never hides the rate itself. */
+.tps-header-identity {
+  display: inline-block;
+  max-width: 18ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+  opacity: 0.85;
+}
+
+/* Visible live/approximate and TTFT/activity labels in the compact header.
+   Bounded widths keep the badge compact; the rate itself stays untruncated. */
+.tps-header-live {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.tps-header-activity,
+.tps-header-ttft {
+  display: inline-block;
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+@media (prefers-color-scheme: dark) {
+  .tps-header-badge:focus-visible {
+    outline-color: #5b9bff;
+  }
+}
+
+/* Focus + motion */
+
+.tps-root button:focus-visible,
+.tps-root summary:focus-visible,
+.tps-root [tabindex="-1"]:focus-visible {
+  outline: 2px solid var(--tps-accent);
+  outline-offset: 2px;
+}
+
+/* Mid-size panels: hide the wordmark so the quiet toolbar stays single-row. */
+@container (max-width: 560px) {
+  .tps-bar {
+    gap: 6px;
+  }
+
+  .tps-wordmark {
+    display: none;
+  }
+
+  .tps-refresh-icon {
+    width: 28px;
+    height: 28px;
+    min-height: 28px;
+  }
+
+  .tps-menu-trigger {
+    padding: 3px 8px;
+  }
+}
+
+/* Narrow panels (320px side panel leaves 296px of content): deterministic
+   two-row grid. Row 1 carries the wordmark, exceptional state and reserved
+   partial/spinner slots; row 2 carries the segmented mode, language popover
+   and refresh. Open popovers stay inside the panel with internal scrolling. */
+@container (max-width: 440px) {
+  .tps-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    grid-template-areas:
+      "word state flag sync"
+      "mode mode lang refresh";
+    align-items: center;
+    column-gap: 6px;
+    row-gap: 6px;
+    min-height: 64px;
+  }
+
+  .tps-wordmark {
+    display: block;
+    grid-area: word;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tps-spacer {
+    display: none;
+  }
+
+  .tps-state {
+    grid-area: state;
+    max-width: 88px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tps-flag,
+  .tps-flag-ph {
+    grid-area: flag;
+  }
+
+  .tps-sync {
+    grid-area: sync;
+  }
+
+  .tps-mode {
+    grid-area: mode;
+    justify-self: start;
+    min-width: 0;
+  }
+
+  .tps-mode-btn {
+    padding: 3px 8px;
+  }
+
+  .tps-lang-menu {
+    grid-area: lang;
+    justify-self: start;
+    min-width: 0;
+  }
+
+  .tps-refresh-icon {
+    grid-area: refresh;
+    justify-self: end;
+  }
+}
+
+/* Narrow content: single-column hero/stats and a two-column live strip. */
+@container (max-width: 360px) {
+  .tps-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .tps-live-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tps-live-cell:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .tps-value {
+    font-size: 24px;
+  }
+
+  .tps-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tps-field > label {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tps-root *,
+  .tps-root *::before,
+  .tps-root *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
