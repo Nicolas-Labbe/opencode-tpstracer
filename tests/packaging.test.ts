@@ -15,9 +15,9 @@ const manifest = JSON.parse(
 };
 
 describe("npm packaging manifest", () => {
-  it("publishes under the approved scoped name at version 0.1.0 with MIT", () => {
+  it("publishes under the approved scoped name at version 0.1.1 with MIT", () => {
     expect(manifest.name).toBe("@nicolas-labbe/opencode-tpstracer");
-    expect(manifest.version).toBe("0.1.0");
+    expect(manifest.version).toBe("0.1.1");
     expect(manifest.license).toBe("MIT");
   });
 

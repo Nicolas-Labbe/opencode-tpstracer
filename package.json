@@ -1,6 +1,6 @@
 {
   "name": "@nicolas-labbe/opencode-tpstracer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TPSTracer: OpenCode V2 GUI session throughput with final provider-active metrics and a bounded estimated live TPS layer.",
   "type": "module",
   "license": "MIT",
