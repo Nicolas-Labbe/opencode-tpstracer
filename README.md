@@ -4,9 +4,26 @@ An experimental OpenCode V2 GUI plugin that displays session and delegated-agent
 
 ## Status
 
-The dashboard uses `@opencode/plugin` **2.2.0**. Desktop, its server and the CLI were confirmed to be running **2.2.0**. The user has confirmed that the plugin loads and that the header follows an active subagent. Full Desktop validation of the latest refactored bundle remains pending.
+The dashboard targets `@opencode/plugin` **2.2.0**. Its GUI API is experimental. Earlier Desktop checks confirmed plugin loading and active-subagent header behavior; complete Desktop validation of the latest bundle remains pending.
 
 The package includes a valid no-op server entry in `src/index.ts`, exporting `id: "tpstracer"` and an empty `setup`. OpenCode requires this definition even for a GUI-only plugin; a missing default definition previously prevented both the server entry and GUI from loading. No backend work is performed.
+
+## Install from npm
+
+Once version 0.1.0 is published, install the package with OpenCode V2:
+
+```sh
+opencode plugin add @nicolas-labbe/opencode-tpstracer@latest
+```
+
+OpenCode installs the prebuilt GUI bundle; users do not need to clone this repository or compile the plugin. To check for and install future updates:
+
+```sh
+opencode plugin check
+opencode plugin update @nicolas-labbe/opencode-tpstracer
+```
+
+Alternatively, add `"@nicolas-labbe/opencode-tpstracer@latest"` to the `plugins` array in your global `~/.config/opencode/opencode.json(c)`, preserving existing settings. The npm package name differs from the stable runtime plugin ID, `tpstracer`.
 
 ## Development
 
@@ -20,9 +37,11 @@ npm run build
 npm run pack:check
 ```
 
-The production build generates `dist/gui-experimental.cjs` using the official preset. `pack:check` inspects the package without publishing it. Dependencies are pinned, and `package-lock.json` is retained for reproducible installs.
+The production build generates `dist/gui-experimental.cjs` using the official preset. `pack:check` builds through the `prepack` lifecycle and inspects the package without publishing it, so a separate build can be skipped when checking the package. Dependencies are pinned, and `package-lock.json` is retained for reproducible installs.
 
-Project-owned code, identifiers, comments, ordinary test fixtures and documentation use English. Intentional GUI translations and localization/verbatim-data tests are exceptions; see the [source-language convention](docs/english-source.md).
+Project-owned code, identifiers, comments, ordinary test fixtures and documentation use English. Intentional GUI translations and localization/verbatim-data tests are exceptions.
+
+The npm distribution contains only `package.json`, this README, `LICENSE`, `src/index.ts` and `dist/gui-experimental.cjs`. The repository retains the complete source and tests. Internal working documentation and OpenSpec artifacts are not distributed or tracked in the public repository.
 
 ## Local Desktop setup
 
@@ -53,7 +72,7 @@ The scope selector separates **Current session** from each delegated session and
 
 The header automatically follows the working subagent with the most recent verified activity, displaying its name/task and current activity or explicitly estimated live TPS. It returns to Current session when none remains active. Completed measurements stay separately labelled as final; unavailable values never borrow another session's rate. Clicking opens the panel without changing its independent scope selection.
 
-The hybrid meter adds a session-scoped activity row, observed TTFT, waiting/tool/retry states and a persisted control to hide estimated TPS while retaining activity and final metrics. Its three-second window estimates tokens from Unicode code points divided by four, excludes the seed chunk and requires at least 500 ms and two observation times. This measures approximate visible delivery, not provider tokens or GPU decoding; language, content and buffering can substantially affect it. Estimates never enter final averages, charts or history. See [hybrid acceptance and design](docs/hybrid-live-tps.md).
+The hybrid meter adds a session-scoped activity row, observed TTFT, waiting/tool/retry states and a persisted control to hide estimated TPS while retaining activity and final metrics. Its three-second window estimates tokens from Unicode code points divided by four, excludes the seed chunk and requires at least 500 ms and two observation times. This measures approximate visible delivery, not provider tokens or GPU decoding; language, content and buffering can substantially affect it. Estimates never enter final averages, charts or history.
 
 The header and panel share one session tree. Discovery starts even when the panel is closed, is paginated, and is limited to 100 descendants and 50 pages per parent. Child histories use a bounded-concurrency queue, and repeated events are coalesced. Controllers are released when the last consumer leaves, not merely when the panel closes. Activity includes tools and retries, not just provider generation.
 
@@ -81,9 +100,9 @@ Exact instantaneous token throughput, provider-native TTFT, durable background c
 
 ## Verification
 
-The ten-language expansion has 196 typed strings per language. implement-deepseek reported 322 passing tests in seventeen files, TypeScript, production build (241.95 kB CJS, 62.32 kB gzip) and package dry run (34 files) after bidi corrections. Primary inspected metadata/schema, catalog/placeholder tests, representative translations, formatting and bidi boundaries. Actual rendered RTL, host persistence/reactive registry and professional native-language review remain unverified; automated parity is not linguistic certification.
+Release preparation passed **326 automated tests across eighteen files**, the TypeScript check, the production build (241.95 kB CJS), and a five-file package dry run. An extracted-package smoke test loaded the server definition with its original ID. These checks do not establish complete Desktop behavior or GUI rendering correctness.
 
-For the hybrid meter, implement-deepseek reported **265 passing tests across fifteen files**, including 30 focused live tests, a successful TypeScript check, production build (118.77 kB CJS) and package dry run (24 files). Primary inspected critical source and regression tests; its independent build attempt was denied by shell permissions, so command outcomes remain agent-reported. There are no DOM tests or automated visual checks; Desktop rendering and real host preference persistence remain pending. See the verification record for details.
+The ten-language interface has 196 typed strings per language. Rendered RTL, long-label layout, complete host preference persistence and professional native-language review remain unverified; automated catalog parity is not linguistic certification.
 
 Before considering the integration fully verified:
 
@@ -93,4 +112,6 @@ Before considering the integration fully verified:
 4. Disconnect and reconnect; verify recovery without stale data.
 5. Compare a response against its server-reported tokens and timestamps.
 
-See the [specification](docs/specification.md), [design](docs/design.md) and [verification record](docs/verification.md).
+## License
+
+[MIT](LICENSE). Copyright (c) 2026 Nicolas Labbe. Third-party dependencies retain their respective licenses.

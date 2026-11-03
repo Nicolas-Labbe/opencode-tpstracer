@@ -1,5 +1,5 @@
 {
-  "name": "tpstracer",
+  "name": "@nicolas-labbe/opencode-tpstracer",
   "version": "0.1.0",
   "description": "TPSTracer: OpenCode V2 GUI session throughput with final provider-active metrics and a bounded estimated live TPS layer.",
   "type": "module",
@@ -8,9 +8,13 @@
     ".": "./src/index.ts",
     "./gui-experimental": "./dist/gui-experimental.cjs"
   },
-  "files": ["dist", "src"],
+  "files": ["dist/gui-experimental.cjs", "src/index.ts"],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "scripts": {
-    "test": "vitest run tests/metrics.test.ts tests/agents.test.ts tests/presentation.test.ts tests/adapter.test.ts tests/tree.test.ts tests/orchestrator.test.ts tests/transport.test.ts tests/plugin-entry.test.ts tests/i18n.test.ts tests/provider-active.test.ts tests/models.test.ts tests/activity.test.ts tests/shared-tree.test.ts tests/snapshots.test.ts tests/live.test.ts tests/dashboard.test.ts tests/localization.test.ts",
+    "test": "vitest run tests/metrics.test.ts tests/agents.test.ts tests/presentation.test.ts tests/adapter.test.ts tests/tree.test.ts tests/orchestrator.test.ts tests/transport.test.ts tests/plugin-entry.test.ts tests/packaging.test.ts tests/i18n.test.ts tests/provider-active.test.ts tests/models.test.ts tests/activity.test.ts tests/shared-tree.test.ts tests/snapshots.test.ts tests/live.test.ts tests/dashboard.test.ts tests/localization.test.ts",
     "test:metrics": "vitest run tests/metrics.test.ts tests/agents.test.ts tests/presentation.test.ts",
     "test:dashboard": "vitest run tests/dashboard.test.ts",
     "test:provider-active": "vitest run tests/provider-active.test.ts tests/models.test.ts",
@@ -21,6 +25,7 @@
     "test:live": "vitest run tests/live.test.ts",
     "typecheck": "tsc --noEmit",
     "build": "vite build",
+    "prepack": "npm run build",
     "pack:check": "npm pack --dry-run"
   },
   "dependencies": {
